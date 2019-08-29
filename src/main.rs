@@ -1,13 +1,13 @@
 use std::{collections::HashSet, env, error::Error, process::Command, sync::Arc};
 
 use serenity::{
+    client::bridge::gateway::{ShardId, ShardManager},
     framework::standard::{
         help_commands,
         macros::{command, group, help},
         Args, CheckResult, CommandGroup, CommandOptions, CommandResult, HelpOptions,
         StandardFramework,
     },
-    client::bridge::gateway::{ShardManager, ShardId},
     model::{channel::Message, gateway::Ready, id::UserId},
     prelude::*,
 };
@@ -15,7 +15,7 @@ use serenity::{
 group!({
     name: "general",
     options: {},
-    commands: [ping, uname, uptime, latency, quit],
+    commands: [ping, uname, uptime, latency, quit, role],
 });
 
 struct OxiHandler;
@@ -53,6 +53,52 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if let Err(why) = client.start() {
         println!("Client error: {:?}", why);
+    }
+
+    Ok(())
+}
+
+#[command]
+#[description = "Add roles to caller"]
+#[bucket = "Server Management"]
+fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    if args.is_empty() {
+        msg.channel_id.say(&ctx.http, "No roles given")?;
+    } else {
+        let cache = &ctx.cache.read();
+        let mut roles_str = String::new();
+        let mut roles = Vec::new();
+
+        while let Ok(arg) = args.single::<String>() {
+            roles_str.push_str(&arg);
+            roles_str.push(' ');
+            for (_, locked) in cache.guilds.iter() {
+                let guild = locked.read();
+                for (_, role) in guild.roles.iter() {
+                    if arg == role.name {
+                        roles.push(role.id);
+                    }
+                }
+            }
+        }
+
+        if roles.is_empty() || roles_str.is_empty() {
+            msg.channel_id
+                .say(&ctx.http, format!("Roles {}not found :confused: ", roles_str))?;
+        } else {
+            let channel = cache
+                .guild_channel(msg.channel_id)
+                .expect("Failed to get guild channel");
+            let mut member = cache
+                .member(channel.read().guild_id, msg.author.id)
+                .expect("Failed to get cache member");
+
+            member.add_roles(&ctx.http, &roles)?;
+            msg.channel_id.say(
+                &ctx.http,
+                format!("Successfully added to roles {}!!! :smiley_cat:", roles_str),
+            )?;
+        }
     }
 
     Ok(())
@@ -118,7 +164,7 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
             let _ = msg.reply(&ctx, "There was a problem getting the shard manager");
 
             return Ok(());
-        },
+        }
     };
 
     let manager = shard_manager.lock();
@@ -130,10 +176,10 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
     let runner = match runners.get(&ShardId(ctx.shard_id)) {
         Some(runner) => runner,
         None => {
-            let _ = msg.reply(&ctx,  "No shard found");
+            let _ = msg.reply(&ctx, "No shard found");
 
             return Ok(());
-        },
+        }
     };
 
     let _ = msg.reply(&ctx, &format!("The shard latency is {:?}", runner.latency));
@@ -164,6 +210,7 @@ fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
 I'm OxiBot. How may I help you?\n\n\
 If you want more information about a specific command, just pass the command as argument."]
 #[command_not_found_text = "Could not find: `{}`."]
+#[strikethrough_commands_tip_in_dm("\n")]
 #[max_levenshtein_distance(3)]
 #[lacking_permissions = "Hide"]
 #[lacking_role = "Nothing"]
