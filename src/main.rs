@@ -5,8 +5,8 @@ use serenity::{
     framework::standard::{
         help_commands,
         macros::{command, group, help},
-        Args, CheckResult, CommandGroup, CommandOptions, CommandResult, HelpOptions,
-        StandardFramework,
+        // CheckResult, CommandOptions,
+        Args, CommandGroup, CommandResult, HelpOptions, StandardFramework,
     },
     model::{channel::Message, gateway::Ready, id::UserId},
     prelude::*,
@@ -43,14 +43,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         StandardFramework::new()
             .configure(|c| c.prefixes(vec!["!", "."]))
             .before(|_ctx, msg, command_name| {
-                println!("Got command '{}' by user '{}'", command_name, msg.author.name);
+                println!(
+                    "Got command '{}' by user '{}'",
+                    command_name, msg.author.name
+                );
                 true // if `before` returns false, command processing doesn't happen.
             })
-            .after(|_, _, command_name, error| {
-                match error {
-                    Ok(()) => println!("Processed command '{}'", command_name),
-                    Err(why) => println!("Command '{}' returned error {:?}", command_name, why),
-                }
+            .after(|_, _, command_name, error| match error {
+                Ok(()) => println!("Processed command '{}'", command_name),
+                Err(why) => println!("Command '{}' returned error {:?}", command_name, why),
             })
             .group(&GENERAL_GROUP)
             .help(&MY_HELP),
@@ -93,8 +94,10 @@ fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         }
 
         if roles.is_empty() || roles_str.is_empty() {
-            msg.channel_id
-                .say(&ctx.http, format!("Roles {}not found :confused: ", roles_str))?;
+            msg.channel_id.say(
+                &ctx.http,
+                format!("Roles {}not found :confused: ", roles_str),
+            )?;
         } else {
             let channel = cache
                 .guild_channel(msg.channel_id)
@@ -111,13 +114,10 @@ fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                     )?;
                 }
                 Err(why) => {
-                    msg.channel_id.say(
-                        &ctx.http,
-                        format!("Failed to add roles: {}", why),
-                    )?;
+                    msg.channel_id
+                        .say(&ctx.http, format!("Failed to add roles: {}", why))?;
                 }
             };
-
         }
     }
 
@@ -149,8 +149,10 @@ fn rmrole(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         }
 
         if roles.is_empty() || roles_str.is_empty() {
-            msg.channel_id
-                .say(&ctx.http, format!("Roles {}not found :confused: ", roles_str))?;
+            msg.channel_id.say(
+                &ctx.http,
+                format!("Roles {}not found :confused: ", roles_str),
+            )?;
         } else {
             let channel = cache
                 .guild_channel(msg.channel_id)
@@ -163,17 +165,17 @@ fn rmrole(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                 Ok(_) => {
                     msg.channel_id.say(
                         &ctx.http,
-                        format!("Successfully removed to roles {}!!! :smiley_cat:", roles_str),
+                        format!(
+                            "Successfully removed to roles {}!!! :smiley_cat:",
+                            roles_str
+                        ),
                     )?;
                 }
                 Err(why) => {
-                    msg.channel_id.say(
-                        &ctx.http,
-                        format!("Failed to remove roles: {}", why),
-                    )?;
+                    msg.channel_id
+                        .say(&ctx.http, format!("Failed to remove roles: {}", why))?;
                 }
             };
-
         }
     }
 
@@ -260,7 +262,7 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
 
     let latency = match runner.latency {
         Some(val) => format!("{} seconds", val.as_secs_f64()),
-        None => "None".to_string()
+        None => "None".to_string(),
     };
 
     let _ = msg.reply(&ctx, &format!("The shard latency is {}", latency));
@@ -277,9 +279,14 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     } else {
         let arg = match args.single::<String>() {
             Ok(a) => a,
-            Err(why) => {println!("Failed to get arg: {:?}", why); "".to_string()}
+            Err(why) => {
+                println!("Failed to get arg: {:?}", why);
+                "".to_string()
+            }
         };
-        Command::new("fortune").args(vec!["-s", "-c", &arg]).output()
+        Command::new("fortune")
+            .args(vec!["-s", "-c", &arg])
+            .output()
     };
     let mut str = String::from("```\n");
     match fortune {
@@ -296,7 +303,6 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     } else {
         str.push_str("\n```");
     }
-
 
     msg.channel_id.say(&ctx.http, str)?;
 
