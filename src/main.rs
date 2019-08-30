@@ -15,7 +15,7 @@ use serenity::{
 group!({
     name: "general",
     options: {},
-    commands: [ping, uname, uptime, latency, quit, role, rmrole],
+    commands: [ping, uname, uptime, latency, quit, role, rmrole, fortune],
 });
 
 struct OxiHandler;
@@ -248,7 +248,30 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
         }
     };
 
-    let _ = msg.reply(&ctx, &format!("The shard latency is {:?}", runner.latency));
+    let latency = match runner.latency {
+        Some(val) => format!("{} seconds", val.as_secs_f64()),
+        None => "None".to_string()
+    };
+
+    let _ = msg.reply(&ctx, &format!("The shard latency is {}", latency));
+
+    Ok(())
+}
+
+#[command]
+#[description = "Tell a fortune"]
+#[bucket = "Meme"]
+fn fortune(ctx: &mut Context, msg: &Message) -> CommandResult {
+    let fortune = Command::new("fortune").arg("-s").output();
+    let mut str = String::from("```\n");
+    match fortune {
+        Ok(out) => str.push_str(&out.stdout.iter().map(|&c| c as char).collect::<String>()),
+        Err(why) => println!("Error calling uname: {:?}", why),
+    };
+
+    str.push_str("\n```");
+
+    msg.channel_id.say(&ctx.http, str)?;
 
     Ok(())
 }
