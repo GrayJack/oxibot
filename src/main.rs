@@ -41,7 +41,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut client = Client::new(&token, OxiHandler)?;
     client.with_framework(
         StandardFramework::new()
-            .configure(|c| c.prefixes(vec!["!", "."])) // set the bot's prefix to "~"
+            .configure(|c| c.prefixes(vec!["!", "."]))
+            .before(|_ctx, msg, command_name| {
+                println!("Got command '{}' by user '{}'", command_name, msg.author.name);
+                true // if `before` returns false, command processing doesn't happen.
+            })
+            .after(|_, _, command_name, error| {
+                match error {
+                    Ok(()) => println!("Processed command '{}'", command_name),
+                    Err(why) => println!("Command '{}' returned error {:?}", command_name, why),
+                }
+            })
             .group(&GENERAL_GROUP)
             .help(&MY_HELP),
     );
