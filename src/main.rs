@@ -5,17 +5,17 @@ use serenity::{
     framework::standard::{
         help_commands,
         macros::{command, group, help},
-        // CheckResult, CommandOptions,
         Args, CommandGroup, CommandResult, HelpOptions, StandardFramework,
     },
     model::{channel::Message, gateway::Ready, id::UserId},
     prelude::*,
+    utils::Colour as Color,
 };
 
 group!({
     name: "general",
     options: {},
-    commands: [ping, uname, uptime, latency, quit, role, rmrole, fortune],
+    commands: [ping, uname, uptime, latency, quit, role, rmrole, fortune, shrug],
 });
 
 struct OxiHandler;
@@ -110,7 +110,10 @@ fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                 Ok(_) => {
                     msg.channel_id.say(
                         &ctx.http,
-                        format!("Successfully added to roles {}!!! :smiley_cat:", roles_str),
+                        format!(
+                            "Successfully added {} to roles {}!!! :smiley_cat:",
+                            msg.author.name, roles_str
+                        ),
                     )?;
                 }
                 Err(why) => {
@@ -166,14 +169,16 @@ fn rmrole(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                     msg.channel_id.say(
                         &ctx.http,
                         format!(
-                            "Successfully removed to roles {}!!! :smiley_cat:",
-                            roles_str
+                            "Successfully removed {} to roles {}!!! :smiley_cat:",
+                            msg.author.name, roles_str
                         ),
                     )?;
                 }
                 Err(why) => {
-                    msg.channel_id
-                        .say(&ctx.http, format!("Failed to remove roles: {}", why))?;
+                    msg.channel_id.say(
+                        &ctx.http,
+                        format!("Failed to remove roles: {}", why),
+                    )?;
                 }
             };
         }
@@ -201,13 +206,15 @@ fn ping(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 #[bucket = "Utils"]
 fn uptime(ctx: &mut Context, msg: &Message) -> CommandResult {
     let uptime = Command::new("uptime").output();
-    let mut str = String::from("\n> ");
+    let mut str = String::new();
     match uptime {
         Ok(out) => str.push_str(&out.stdout.iter().map(|&c| c as char).collect::<String>()),
         Err(why) => println!("Error calling uptime: {:?}", why),
     };
 
-    msg.channel_id.say(&ctx.http, str)?;
+    msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| e.title(" ").color(Color::RED).description(&str))
+    })?;
 
     Ok(())
 }
@@ -217,13 +224,15 @@ fn uptime(ctx: &mut Context, msg: &Message) -> CommandResult {
 #[bucket = "Utils"]
 fn uname(ctx: &mut Context, msg: &Message) -> CommandResult {
     let uname = Command::new("uname").arg("-a").output();
-    let mut str = String::from("\n> ");
+    let mut str = String::new();
     match uname {
         Ok(out) => str.push_str(&out.stdout.iter().map(|&c| c as char).collect::<String>()),
         Err(why) => println!("Error calling uname: {:?}", why),
     };
 
-    msg.channel_id.say(&ctx.http, str)?;
+    msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| e.title(" ").color(Color::RED).description(&str))
+    })?;
 
     Ok(())
 }
@@ -254,7 +263,13 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
     let runner = match runners.get(&ShardId(ctx.shard_id)) {
         Some(runner) => runner,
         None => {
-            let _ = msg.reply(&ctx, "No shard found");
+            msg.channel_id.send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title(" ")
+                        .color(Color::RED)
+                        .description(&"No shard found")
+                })
+            })?;
 
             return Ok(());
         }
@@ -265,7 +280,13 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
         None => "None".to_string(),
     };
 
-    let _ = msg.reply(&ctx, &format!("The shard latency is {}", latency));
+    msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| {
+            e.title(" ")
+                .color(Color::TEAL)
+                .description(&format!("The shard latency is {}", latency))
+        })
+    })?;
 
     Ok(())
 }
@@ -306,6 +327,14 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
     msg.channel_id.say(&ctx.http, str)?;
 
+    Ok(())
+}
+
+#[command]
+#[description = r"¯\_(ツ)_/¯"]
+#[bucket = "Meme"]
+fn shrug(ctx: &mut Context, msg: &Message) -> CommandResult {
+    msg.channel_id.say(&ctx.http, r"> ¯\_(ツ)_/¯")?;
     Ok(())
 }
 
