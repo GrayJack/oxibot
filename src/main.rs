@@ -93,11 +93,21 @@ fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                 .member(channel.read().guild_id, msg.author.id)
                 .expect("Failed to get cache member");
 
-            member.add_roles(&ctx.http, &roles)?;
-            msg.channel_id.say(
-                &ctx.http,
-                format!("Successfully added to roles {}!!! :smiley_cat:", roles_str),
-            )?;
+            match member.add_roles(&ctx.http, &roles) {
+                Ok(_) => {
+                    msg.channel_id.say(
+                        &ctx.http,
+                        format!("Successfully added to roles {}!!! :smiley_cat:", roles_str),
+                    )?;
+                }
+                Err(why) => {
+                    msg.channel_id.say(
+                        &ctx.http,
+                        format!("Failed to add roles: {}", why),
+                    )?;
+                }
+            };
+
         }
     }
 
@@ -139,11 +149,21 @@ fn rmrole(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                 .member(channel.read().guild_id, msg.author.id)
                 .expect("Failed to get cache member");
 
-            member.remove_roles(&ctx.http, &roles)?;
-            msg.channel_id.say(
-                &ctx.http,
-                format!("Successfully removed to roles {}!!! :smiley_cat:", roles_str),
-            )?;
+            match member.remove_roles(&ctx.http, &roles) {
+                Ok(_) => {
+                    msg.channel_id.say(
+                        &ctx.http,
+                        format!("Successfully removed to roles {}!!! :smiley_cat:", roles_str),
+                    )?;
+                }
+                Err(why) => {
+                    msg.channel_id.say(
+                        &ctx.http,
+                        format!("Failed to remove roles: {}", why),
+                    )?;
+                }
+            };
+
         }
     }
 
