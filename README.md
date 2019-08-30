@@ -1,2 +1,12 @@
-# oxibot
-My bot in rust
+# OxiBot
+
+A bot in Rust
+
+## Features
+ - Add caller to roles
+ - Remove caller to roles
+ - Get latency of shard
+ - Get running system uname and uptime
+
+## Minimal Viable Rust Version
+Rust 1.37
