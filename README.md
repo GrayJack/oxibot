@@ -8,6 +8,12 @@ A bot in Rust
  - Get latency of shard
  - Get running system uname and uptime
  - Fortune messages
+ - Shrug, tableflip and unflip lennys
 
 ## Minimal Viable Rust Version
 Rust 1.37
+
+## Requirements
+ - uname
+ - uptime
+ - fortune-mod
