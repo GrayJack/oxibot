@@ -15,7 +15,7 @@ use serenity::{
 group!({
     name: "general",
     options: {},
-    commands: [ping, uname, uptime, latency, quit, role, rmrole, fortune, shrug],
+    commands: [ping, uname, uptime, latency, quit, role, rmrole, fortune, shrug, tableflip, unflip],
 });
 
 struct OxiHandler;
@@ -335,6 +335,23 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 #[bucket = "Meme"]
 fn shrug(ctx: &mut Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, r"> ¯\_(ツ)_/¯")?;
+    Ok(())
+}
+
+#[command]
+#[aliases("tbflip")]
+#[description = r"(╯°□°）╯︵ ┻━┻"]
+#[bucket = "Meme"]
+fn tableflip(ctx: &mut Context, msg: &Message) -> CommandResult {
+    msg.channel_id.say(&ctx.http, r"> (╯°□°）╯︵ ┻━┻")?;
+    Ok(())
+}
+
+#[command]
+#[description = r"┬─┬ ノ( ゜-゜ノ)"]
+#[bucket = "Meme"]
+fn unflip(ctx: &mut Context, msg: &Message) -> CommandResult {
+    msg.channel_id.say(&ctx.http, r"> ┬─┬ ノ( ゜-゜ノ)")?;
     Ok(())
 }
 
