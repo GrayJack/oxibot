@@ -13,9 +13,27 @@ use serenity::{
 };
 
 group!({
-    name: "general",
+    name: "Util",
     options: {},
-    commands: [ping, uname, uptime, latency, quit, role, rmrole, fortune, shrug, tableflip, unflip],
+    commands: [latency, uname, uptime],
+});
+
+group!({
+    name: "Meme",
+    options: {},
+    commands: [ping, shrug, tableflip, unflip],
+});
+
+group!({
+    name: "Management",
+    options: {},
+    commands: [role, rmrole],
+});
+
+group!({
+    name: "Owner",
+    options: {},
+    commands: [ip, quit],
 });
 
 struct OxiHandler;
@@ -39,9 +57,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN")?;
 
     let mut client = Client::new(&token, OxiHandler)?;
+
+    let owners = match client.cache_and_http.http.get_current_application_info() {
+        Ok(info) => {
+            let mut set = HashSet::new();
+            set.insert(info.owner.id);
+
+            set
+        },
+        Err(why) => panic!("Couldn't get application info: {:?}", why),
+    };
+
     client.with_framework(
         StandardFramework::new()
-            .configure(|c| c.prefixes(vec!["!", "."]))
+            .configure(|c| c.owners(owners).prefixes(vec!["!", "."]))
             .before(|_ctx, msg, command_name| {
                 println!(
                     "Got command '{}' by user '{}'",
@@ -53,7 +82,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Ok(()) => println!("Processed command '{}'", command_name),
                 Err(why) => println!("Command '{}' returned error {:?}", command_name, why),
             })
-            .group(&GENERAL_GROUP)
+            .group(&UTIL_GROUP)
+            .group(&MEME_GROUP)
+            .group(&MANAGEMENT_GROUP)
+            .group(&OWNER_GROUP)
             .help(&MY_HELP),
     );
 
@@ -369,6 +401,23 @@ fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
     }
 
     let _ = msg.reply(&ctx, "Shutting down!");
+
+    Ok(())
+}
+
+#[command]
+#[owners_only]
+fn ip(ctx: &mut Context, msg: &Message) -> CommandResult {
+    let ip = Command::new("curl").arg("ifconfig.co").output();
+    let mut str = String::new();
+    match ip {
+        Ok(out) => str.push_str(&out.stdout.iter().map(|&c| c as char).collect::<String>()),
+        Err(why) => println!("Error calling ip: {:?}", why),
+    };
+
+    msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|e| e.title(" ").color(Color::RED).description(&str))
+    })?;
 
     Ok(())
 }
