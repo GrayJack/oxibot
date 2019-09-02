@@ -21,7 +21,7 @@ group!({
 group!({
     name: "Meme",
     options: {},
-    commands: [ping, shrug, tableflip, unflip],
+    commands: [fortune, ping, shrug, tableflip, unflip],
 });
 
 group!({
@@ -423,8 +423,9 @@ fn ip(ctx: &mut Context, msg: &Message) -> CommandResult {
 }
 
 #[help]
-#[individual_command_tip = "Hello! こんにちは！Hola! Bonjour! 您好!\n\
+#[individual_command_tip = "Hello! Olá! こんにちは！Hola! Bonjour! 您好!\n\
 I'm OxiBot. How may I help you?\n\n\
+My command prefixes are `.` and `!`\n\n\
 If you want more information about a specific command, just pass the command as argument."]
 #[command_not_found_text = "Could not find: `{}`."]
 #[strikethrough_commands_tip_in_dm("\n")]
