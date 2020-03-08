@@ -30,7 +30,7 @@ fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
 #[command]
 #[owners_only]
 fn ip(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let ip = Command::new("curl").arg("ifconfig.co").output();
+    let ip = Command::new("curl").arg("ifconfig.me").output();
     let mut str = String::new();
     match ip {
         Ok(out) => str.push_str(&out.stdout.iter().map(|&c| c as char).collect::<String>()),
@@ -38,7 +38,7 @@ fn ip(ctx: &mut Context, msg: &Message) -> CommandResult {
     };
 
     msg.channel_id.send_message(&ctx.http, |m| {
-        m.embed(|e| e.title(" ").color(Color::RED).description(&str))
+        m.embed(|e| e.title("").color(Color::RED).description(&str))
     })?;
 
     Ok(())
