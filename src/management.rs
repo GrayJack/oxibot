@@ -86,18 +86,18 @@ const REACTION_FAIL: &str = "🔴";
 const REACTION_WARNING: &str = "⚠";
 
 // TODO:
+/// Manage roles for the caller.
+///
+/// Usage: `role <add | remove | rm> <CATEGORY> <ROLES>` or `role <list | lista>
+/// [CATEGORY]`
+///
+/// You can get the categories with `role list`.
+///
+/// It reacts to the command message in case of:
+///     success: `🟢`
+///     fail: `🔴`
+///     a role is invalid for the category: ⚠
 #[command]
-#[description = r"
-Manage roles for the caller.
-
-Usage: `role <add | remove | rm> <CATEGORY> <ROLES>` or `role <list | lista> [CATEGORY]`
-
-You can get the categories with `role list`.
-
-It reacts to the command message in case of:
-    success: `🟢`
-    fail: `🔴`
-    a role is invalid for the category: ⚠"]
 fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
         msg.channel_id.send_message(&ctx.http, |m| {

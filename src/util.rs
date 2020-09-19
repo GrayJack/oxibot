@@ -10,8 +10,8 @@ use serenity::{
     utils::Colour as Color,
 };
 
+/// Calculates the shard latency.
 #[command]
-#[description = "Calculates the shard latency"]
 fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
     // The shard manager is an interface for mutating, stopping, restarting, and
     // retrieving information about shards.
@@ -63,8 +63,8 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+/// Shows how long the system running the bot has been online!
 #[command]
-#[description = "Shows how long the system running the bot has been online!"]
 fn uptime(ctx: &mut Context, msg: &Message) -> CommandResult {
     let uptime = Command::new("uptime").output();
     let mut str = String::new();
@@ -80,9 +80,8 @@ fn uptime(ctx: &mut Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+/// Shows the kernel the bot runs on!
 #[command]
-#[description = "Shows the kernel the bot runs on!"]
-#[bucket = "Utils"]
 fn uname(ctx: &mut Context, msg: &Message) -> CommandResult {
     let uname = Command::new("uname").arg("-a").output();
     let mut str = String::new();

@@ -6,8 +6,8 @@ use serenity::{
     prelude::*,
 };
 
+/// Mark the caller with "Pong" as text.
 #[command]
-#[description = "Pong"]
 fn ping(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
         msg.reply(ctx, "Pong!")?;
@@ -19,8 +19,8 @@ fn ping(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     Ok(())
 }
 
+/// Tell a fortune.
 #[command]
-#[description = "Tell a fortune"]
 fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let fortune = if args.is_empty() {
         Command::new("fortune").arg("-s").output()
@@ -54,27 +54,5 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
     msg.channel_id.say(&ctx.http, str)?;
 
-    Ok(())
-}
-
-#[command]
-#[description = r"¯\_(ツ)_/¯"]
-fn shrug(ctx: &mut Context, msg: &Message) -> CommandResult {
-    msg.channel_id.say(&ctx.http, r"> ¯\_(ツ)_/¯")?;
-    Ok(())
-}
-
-#[command]
-#[aliases("tbflip")]
-#[description = r"(╯°□°）╯︵ ┻━┻"]
-fn tableflip(ctx: &mut Context, msg: &Message) -> CommandResult {
-    msg.channel_id.say(&ctx.http, r"> (╯°□°）╯︵ ┻━┻")?;
-    Ok(())
-}
-
-#[command]
-#[description = r"┬─┬ ノ( ゜-゜ノ)"]
-fn unflip(ctx: &mut Context, msg: &Message) -> CommandResult {
-    msg.channel_id.say(&ctx.http, r"> ┬─┬ ノ( ゜-゜ノ)")?;
     Ok(())
 }

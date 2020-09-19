@@ -23,7 +23,7 @@ mod util;
 struct Util;
 
 #[group]
-#[commands(fortune, ping, shrug, tableflip, unflip)]
+#[commands(fortune, ping)]
 struct Meme;
 
 #[group]

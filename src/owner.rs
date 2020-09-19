@@ -9,6 +9,7 @@ use serenity::{
     utils::Colour as Color,
 };
 
+/// Shutdown the bot.
 #[command]
 #[owners_only]
 fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
@@ -27,6 +28,7 @@ fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+/// Get the global ip of the bot
 #[command]
 #[owners_only]
 fn ip(ctx: &mut Context, msg: &Message) -> CommandResult {
