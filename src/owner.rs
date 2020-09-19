@@ -12,6 +12,7 @@ use serenity::{
 /// Shutdown the bot.
 #[command]
 #[owners_only]
+#[only_in(dm)]
 fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read();
 
@@ -31,6 +32,7 @@ fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
 /// Get the global ip of the bot
 #[command]
 #[owners_only]
+#[only_in(dm)]
 fn ip(ctx: &mut Context, msg: &Message) -> CommandResult {
     let ip = Command::new("curl").arg("ifconfig.me").output();
     let mut str = String::new();
