@@ -1,6 +1,6 @@
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
-    model::{channel::Message, id::RoleId},
+    model::channel::Message,
     prelude::*,
     utils::Color,
 };
@@ -100,8 +100,8 @@ const REACTION_WARNING: &str = "⚠";
 #[command]
 #[only_in(guild)]
 #[sub_commands(add, rm, list)]
-#[usage = "role <add | adicionar> <CATEGORY> <ROLES>` or `role <rm | remove | remover> <CATEGORY> \
-           <ROLES>` or `role <list | lista> [CATEGORY]"]
+#[usage = "role <add | adicionar> <CATEGORY> <ROLES ...>` or `role <rm | remove | remover> \
+           <CATEGORY> <ROLES ...>` or `role <list | lista> [CATEGORY]"]
 fn role(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     if args.is_empty() {
         msg.channel_id.send_message(&ctx.http, |m| {
@@ -128,7 +128,7 @@ fn role(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
 #[command]
 #[only_in(guild)]
 #[aliases(adicionar)]
-#[usage = "role add <CATEGORY> <ROLES>` or `role adicionar <CATEGORY> <ROLES>"]
+#[usage = "role add <CATEGORY> <ROLES ...>` or `role adicionar <CATEGORY> <ROLES ...>"]
 fn add(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
         msg.channel_id.send_message(&ctx.http, |m| {
@@ -222,8 +222,8 @@ fn add(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 #[command]
 #[only_in(guild)]
 #[aliases(remove, remover)]
-#[usage = "role rm <CATEGORY> <ROLES>` or `role remove <CATEGORY> <ROLES>` or `role remover \
-           <CATEGORY> <ROLES>"]
+#[usage = "role rm <CATEGORY> <ROLES ...>` or `role remove <CATEGORY> <ROLES>` or `role remover \
+           <CATEGORY> <ROLES ...>"]
 fn rm(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
         msg.channel_id.send_message(&ctx.http, |m| {

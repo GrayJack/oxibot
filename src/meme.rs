@@ -6,8 +6,9 @@ use serenity::{
     prelude::*,
 };
 
-/// Mark the caller with "Pong" as text.
+/// Respond Pong.
 #[command]
+#[usage = "pint [TEXT]"]
 fn ping(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
         msg.reply(ctx, "Pong!")?;
@@ -20,7 +21,10 @@ fn ping(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 /// Tell a fortune.
+///
+/// If the `CATEGORY` is passed, it filter a fortune for that category.
 #[command]
+#[usage = "fortune [CATEGORY]"]
 fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let fortune = if args.is_empty() {
         Command::new("fortune").arg("-s").output()
