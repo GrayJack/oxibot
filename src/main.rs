@@ -18,29 +18,21 @@ mod owner;
 mod types;
 mod util;
 
-group!({
-    name: "Util",
-    options: {},
-    commands: [latency, uname, uptime, rolelist],
-});
+#[group]
+#[commands(latency, uname, uptime, rolelist)]
+struct Util;
 
-group!({
-    name: "Meme",
-    options: {},
-    commands: [fortune, ping, shrug, tableflip, unflip],
-});
+#[group]
+#[commands(fortune, ping, shrug, tableflip, unflip)]
+struct Meme;
 
-group!({
-    name: "Management",
-    options: {},
-    commands: [role, rmrole],
-});
+#[group]
+#[commands(role, rmrole)]
+struct Management;
 
-group!({
-    name: "Owner",
-    options: {},
-    commands: [ip, quit],
-});
+#[group]
+#[commands(ip, quit)]
+struct Owner;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN")?;
@@ -53,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             set.insert(info.owner.id);
 
             set
-        }
+        },
         Err(why) => panic!("Couldn't get application info: {:?}", why),
     };
 
@@ -84,17 +76,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     if let Err(why) = client.start() {
-        println!("Client error: {:?}", why);
+        eprintln!("Client error: {:?}", why);
     }
 
     Ok(())
 }
 
 #[help]
-#[individual_command_tip = "Hello! Olá! こんにちは！Hola! Bonjour! 您好!\n\
-I'm OxiBot. How may I help you?\n\n\
-My command prefixes are `.` and `!`\n\n\
-If you want more information about a specific command, just pass the command as argument."]
+#[individual_command_tip = "Hello! Olá! こんにちは！Hola! Bonjour! 您好!\nI'm OxiBot. How may I \
+                            help you?\n\nMy command prefixes are `.` and `!`\n\nIf you want more \
+                            information about a specific command, just pass the command as \
+                            argument."]
 #[command_not_found_text = "Could not find: `{}`."]
 #[strikethrough_commands_tip_in_dm("\n")]
 #[max_levenshtein_distance(3)]

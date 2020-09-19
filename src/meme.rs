@@ -30,7 +30,7 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             Err(why) => {
                 println!("Failed to get arg: {:?}", why);
                 "".to_string()
-            }
+            },
         };
         Command::new("fortune")
             .args(vec!["-s", "-c", &arg])
@@ -42,7 +42,7 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         Err(why) => {
             println!("Error calling uname: {:?}", why);
             str.push_str("Failed to get a fortune")
-        }
+        },
     };
 
     if str == "```\n" {

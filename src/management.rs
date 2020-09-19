@@ -49,11 +49,11 @@ fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                             msg.author.name, roles_str
                         ),
                     )?;
-                }
+                },
                 Err(why) => {
                     msg.channel_id
                         .say(&ctx.http, format!("Failed to add roles: {}", why))?;
-                }
+                },
             };
         }
     }
@@ -106,11 +106,11 @@ fn rmrole(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                             msg.author.name, roles_str
                         ),
                     )?;
-                }
+                },
                 Err(why) => {
                     msg.channel_id
                         .say(&ctx.http, format!("Failed to remove roles: {}", why))?;
-                }
+                },
             };
         }
     }

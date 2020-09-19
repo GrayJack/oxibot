@@ -13,4 +13,4 @@ target_cpu = "native"
 panic = "abort"
 
 [dependencies]
-serenity = "~0.7.1"
+serenity = "~0.8.7"
