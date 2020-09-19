@@ -107,8 +107,9 @@ fn role(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
         msg.channel_id.send_message(&ctx.http, |m| {
             m.embed(|e| {
                 e.title(" ").color(Color::RED).description(
-                    "Wrong usage of command.\n\nUsage: `role <add | rm> <CATEGORY> <ROLES>` or \
-                     `role <list | lista> <CATEGORY>`\n\nFor more information do `help role`",
+                    "Wrong usage of command.\n\nUsage: `role <add | adicionar> <CATEGORY> <ROLES \
+                     ...>` or `role <rm | remove | remover> <CATEGORY> <ROLES ...>` or `role \
+                     <list | lista> [CATEGORY]`\n\nFor more information do `help role`",
                 )
             })
         })?;
@@ -134,7 +135,8 @@ fn add(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         msg.channel_id.send_message(&ctx.http, |m| {
             m.embed(|e| {
                 e.title(" ").color(Color::RED).description(
-                    "Usage: `role add <CATEGORY> <ROLES>` or `role adicionar <CATEGORY> <ROLES>`",
+                    "Usage: `role add <CATEGORY> <ROLES ...>` or `role adicionar <CATEGORY> \
+                     <ROLES ...>`",
                 )
             })
         })?;
@@ -229,8 +231,8 @@ fn rm(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         msg.channel_id.send_message(&ctx.http, |m| {
             m.embed(|e| {
                 e.title(" ").color(Color::RED).description(
-                    "Usage: `role rm <CATEGORY> <ROLES>` or `role remove <CATEGORY> <ROLES>` or \
-                     `role remover <CATEGORY> <ROLES>`",
+                    "Usage: `role rm <CATEGORY> <ROLES ...>` or `role remove <CATEGORY> <ROLES \
+                     ...>` or `role remover <CATEGORY> <ROLES ...>`",
                 )
             })
         })?;
