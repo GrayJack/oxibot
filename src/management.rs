@@ -2,118 +2,278 @@ use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::channel::Message,
     prelude::*,
+    utils::Color,
 };
 
+// TODO: Make it not hardcoded someday
+const VALID_ESPECIAL: &[&str] = &["Gamer", "Otaku"];
+
+const VALID_PLATAFORMA: &[&str] = &[
+    "EpicGames",
+    "NintendoOnline",
+    "Origin",
+    "PlaystationNetwork",
+    "Steam",
+    "XboxLive",
+];
+
+const VALID_OS: &[&str] = &[
+    "DragonflyBSD",
+    "FreeBSD",
+    "OpenBSD",
+    "NetBSD",
+    "Linux",
+    "Illumos",
+    "Solaris",
+    "MacOS",
+    "Windows",
+];
+
+const VALID_PROGRAMMING: &[&str] = &[
+    "Ada",
+    "Agda",
+    "Assembly",
+    "BrainFuck",
+    "C-lang",
+    "C++",
+    "C#",
+    "Carp",
+    "Clojure",
+    "CommonLisp",
+    "Coq",
+    "Crystal",
+    "CSS",
+    "D-lang",
+    "Dart",
+    "ECMAScript",
+    "Elixir",
+    "Elm",
+    "Erlang",
+    "F#",
+    "Fortran",
+    "Go",
+    "Groovy",
+    "Haskell",
+    "HTML",
+    "Idris",
+    "Janet",
+    "Java",
+    "Julia",
+    "Kotlin",
+    "Matlab",
+    "Nim",
+    "Latex",
+    "Lua",
+    "OCaml",
+    "Octave",
+    "PureScript",
+    "Python",
+    "R-lang",
+    "Racket",
+    "Ruby",
+    "Rust",
+    "Scala",
+    "Scheme",
+    "Shell",
+    "Swift",
+    "TypeScript",
+    "WebAssembly",
+    "Zig",
+];
+
+const REACTION_OK: &str = "🟢";
+const REACTION_FAIL: &str = "🔴";
+const REACTION_WARNING: &str = "⚠";
+
+// TODO:
 #[command]
-#[description = "Add roles to caller"]
+#[description = r"
+Manage roles for the caller.
+
+Usage: `role <add | remove | rm> <CATEGORY> <ROLES>` or `role <list | lista> [CATEGORY]`
+
+You can get the categories with `role list`.
+
+It reacts to the command message in case of:
+    success: `🟢`
+    fail: `🔴`
+    a role is invalid for the category: ⚠"]
 fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
-        msg.channel_id.say(&ctx.http, "No roles given")?;
-    } else {
-        let cache = &ctx.cache.read();
+        msg.channel_id.send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                e.title(" ").color(Color::RED).description(
+                    "Usage: `.role <add | remove> <CATEGORY> <ROLES>` or `.role <list | lista> \
+                     <CATEGORY>`",
+                )
+            })
+        })?;
+    }
+
+    let mode = args.single::<String>()?;
+    let category = args.single::<String>().unwrap_or_default();
+    let category_list = category_valid_roles(&category);
+
+    let cache = &ctx.cache.read();
+
+    let mut get_roles = || -> Result<_, serenity::Error> {
         let mut roles_str = String::new();
         let mut roles = Vec::new();
 
         while let Ok(arg) = args.single::<String>() {
-            roles_str.push_str(&arg);
-            roles_str.push(' ');
-            for (_, locked) in cache.guilds.iter() {
-                let guild = locked.read();
-                for (_, role) in guild.roles.iter() {
-                    if arg == role.name {
-                        roles.push(role.id);
+            if is_valid_role(&arg, category_list) {
+                roles_str.push_str(&arg);
+                roles_str.push(' ');
+                for (_, locked) in cache.guilds.iter() {
+                    let guild = locked.read();
+                    for (&id, role) in guild.roles.iter() {
+                        if arg == role.name {
+                            roles.push(id);
+                        }
                     }
                 }
+            } else {
+                eprintln!("Invalid role for {}: {}", category, &arg);
+                msg.react(&ctx.http, REACTION_WARNING)?;
             }
         }
 
-        if roles.is_empty() || roles_str.is_empty() {
-            msg.channel_id.say(
-                &ctx.http,
-                format!("Roles {}not found :confused: ", roles_str),
-            )?;
-        } else {
-            let channel = cache
-                .guild_channel(msg.channel_id)
-                .expect("Failed to get guild channel");
-            let mut member = cache
-                .member(channel.read().guild_id, msg.author.id)
-                .expect("Failed to get cache member");
+        Ok((roles, roles_str))
+    };
 
-            match member.add_roles(&ctx.http, &roles) {
-                Ok(_) => {
-                    msg.channel_id.say(
-                        &ctx.http,
-                        format!(
-                            "Successfully added {} to roles {}!!! :smiley_cat:",
+    match mode.as_str() {
+        "add" => {
+            let (roles, roles_str) = get_roles()?;
+
+            if roles.is_empty() || roles_str.is_empty() {
+                eprintln!("Roles {}not found", roles_str);
+                msg.react(&ctx.http, REACTION_FAIL)?;
+            } else {
+                let channel = match cache.guild_channel(msg.channel_id) {
+                    Some(c) => c,
+                    _ => {
+                        eprintln!("Failed to get guild channel");
+                        msg.react(&ctx.http, REACTION_FAIL)?;
+                        return Ok(());
+                    },
+                };
+                let mut member = match cache.member(channel.read().guild_id, msg.author.id) {
+                    Some(m) => m,
+                    _ => {
+                        eprintln!("Failed to get cache member");
+                        msg.react(&ctx.http, REACTION_FAIL)?;
+                        return Ok(());
+                    },
+                };
+
+                match member.add_roles(&ctx.http, &roles) {
+                    Ok(_) => {
+                        println!(
+                            "Successfully added {} to roles {}",
                             msg.author.name, roles_str
-                        ),
-                    )?;
-                },
-                Err(why) => {
-                    msg.channel_id
-                        .say(&ctx.http, format!("Failed to add roles: {}", why))?;
-                },
-            };
-        }
+                        );
+                        msg.react(&ctx.http, REACTION_OK)?;
+                    },
+                    Err(why) => {
+                        eprintln!(
+                            "Failed to add {} to roles {}: {}",
+                            msg.author.name, roles_str, why
+                        );
+                        msg.react(&ctx.http, REACTION_FAIL)?;
+                    },
+                };
+            }
+        },
+        "remove" | "rm" => {
+            let (roles, roles_str) = get_roles()?;
+
+            if roles.is_empty() || roles_str.is_empty() {
+                eprintln!("Roles {}not found", roles_str);
+                msg.react(&ctx.http, REACTION_FAIL)?;
+            } else {
+                let channel = match cache.guild_channel(msg.channel_id) {
+                    Some(c) => c,
+                    _ => {
+                        eprintln!("Failed to get guild channel");
+                        msg.react(&ctx.http, REACTION_FAIL)?;
+                        return Ok(());
+                    },
+                };
+                let mut member = match cache.member(channel.read().guild_id, msg.author.id) {
+                    Some(m) => m,
+                    _ => {
+                        eprintln!("Failed to get cache member");
+                        msg.react(&ctx.http, REACTION_FAIL)?;
+                        return Ok(());
+                    },
+                };
+
+                match member.remove_roles(&ctx.http, &roles) {
+                    Ok(_) => {
+                        println!(
+                            "Successfully removed {} to roles {}",
+                            msg.author.name, roles_str
+                        );
+                        msg.react(&ctx.http, REACTION_OK)?;
+                    },
+                    Err(why) => {
+                        eprintln!(
+                            "Failed to remove {} to roles {}: {}",
+                            msg.author.name, roles_str, why
+                        );
+                        msg.react(&ctx.http, REACTION_FAIL)?;
+                    },
+                };
+            }
+        },
+        "list" | "lista" => {
+            if category.is_empty() {
+                let categories = {
+                    let mut categories = [
+                        "especial",
+                        "os | so | sistema-operacional",
+                        "plataforma | plataforma-de-jogos",
+                        "prog | programming | programação",
+                    ];
+                    categories.sort_unstable();
+                    format!("```{}```", categories.join("\n"))
+                };
+                msg.channel_id.send_message(&ctx.http, |m| {
+                    m.embed(|e| e.title(" ").color(Color::BLUE).description(categories))
+                })?;
+            } else {
+                let s = {
+                    let mut s = category_list
+                        .iter()
+                        .map(|&s| s.to_string())
+                        .collect::<Vec<_>>();
+                    s.sort_unstable();
+                    format!("```\n{}\n```", s.join("\n"))
+                };
+                msg.channel_id.send_message(&ctx.http, |m| {
+                    m.embed(|e| e.title(" ").color(Color::BLUE).description(s))
+                })?;
+            }
+        },
+        _ => {
+            eprintln!("Invalid mode");
+            msg.react(&ctx.http, REACTION_FAIL)?;
+        },
     }
 
     Ok(())
 }
 
-#[command]
-#[description = "Remove roles to caller"]
-fn rmrole(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    if args.is_empty() {
-        msg.channel_id.say(&ctx.http, "No roles given")?;
-    } else {
-        let cache = &ctx.cache.read();
-        let mut roles_str = String::new();
-        let mut roles = Vec::new();
-
-        while let Ok(arg) = args.single::<String>() {
-            roles_str.push_str(&arg);
-            roles_str.push(' ');
-            for (_, locked) in cache.guilds.iter() {
-                let guild = locked.read();
-                for (_, role) in guild.roles.iter() {
-                    if arg == role.name {
-                        roles.push(role.id);
-                    }
-                }
-            }
-        }
-
-        if roles.is_empty() || roles_str.is_empty() {
-            msg.channel_id.say(
-                &ctx.http,
-                format!("Roles {}not found :confused: ", roles_str),
-            )?;
-        } else {
-            let channel = cache
-                .guild_channel(msg.channel_id)
-                .expect("Failed to get guild channel");
-            let mut member = cache
-                .member(channel.read().guild_id, msg.author.id)
-                .expect("Failed to get cache member");
-
-            match member.remove_roles(&ctx.http, &roles) {
-                Ok(_) => {
-                    msg.channel_id.say(
-                        &ctx.http,
-                        format!(
-                            "Successfully removed {} to roles {}!!! :smiley_cat:",
-                            msg.author.name, roles_str
-                        ),
-                    )?;
-                },
-                Err(why) => {
-                    msg.channel_id
-                        .say(&ctx.http, format!("Failed to remove roles: {}", why))?;
-                },
-            };
-        }
+fn category_valid_roles(category: &str) -> &[&str] {
+    match category {
+        "especial" => VALID_ESPECIAL,
+        "os" | "so" | "sistema-operacional" => VALID_OS,
+        "plataforma" | "plataforma-de-jogos" => VALID_PLATAFORMA,
+        "prog" | "programming" | "programação" => VALID_PROGRAMMING,
+        _ => &[],
     }
+}
 
-    Ok(())
+fn is_valid_role(role: &str, valid_list: &[&str]) -> bool {
+    valid_list.contains(&role)
 }

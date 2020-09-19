@@ -11,46 +11,6 @@ use serenity::{
 };
 
 #[command]
-#[description = "List all roles"]
-fn rolelist(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let guild_id = msg.guild_id;
-    let cache = &ctx.cache.read();
-    let mut roles = Vec::new();
-
-    for (gid, locked) in cache.guilds.iter() {
-        if Some(*gid) == guild_id {
-            let guild = locked.read();
-
-            for (_, role) in guild.roles.iter() {
-                roles.push(role.name.clone());
-            }
-        }
-    }
-
-    roles.sort();
-
-    let mut str = String::new();
-    for (i, role) in roles.iter().enumerate() {
-        if role == "@everyone" {
-            continue;
-        }
-
-        str.push_str(&role);
-        str.push('\t');
-
-        if i != 0 && i % 10 == 0 {
-            str.push('\n');
-        }
-    }
-
-    msg.channel_id.send_message(&ctx.http, |m| {
-        m.embed(|e| e.title(" ").color(Color::BLUE).description(&str))
-    })?;
-
-    Ok(())
-}
-
-#[command]
 #[description = "Calculates the shard latency"]
 fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
     // The shard manager is an interface for mutating, stopping, restarting, and

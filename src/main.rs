@@ -19,7 +19,7 @@ mod types;
 mod util;
 
 #[group]
-#[commands(latency, uname, uptime, rolelist)]
+#[commands(latency, uname, uptime)]
 struct Util;
 
 #[group]
@@ -27,7 +27,7 @@ struct Util;
 struct Meme;
 
 #[group]
-#[commands(role, rmrole)]
+#[commands(role)]
 struct Management;
 
 #[group]
@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     client.with_framework(
         StandardFramework::new()
-            .configure(|c| c.owners(owners).prefixes(vec!["!", "."]))
+            .configure(|c| c.owners(owners).prefixes(vec!["!", ".", ";"]))
             .before(|_ctx, msg, command_name| {
                 println!(
                     "Got command '{}' by user '{}'",
