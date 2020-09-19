@@ -88,11 +88,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                             information about a specific command, just pass the command as \
                             argument."]
 #[command_not_found_text = "Could not find: `{}`."]
-#[strikethrough_commands_tip_in_dm("\n")]
 #[max_levenshtein_distance(3)]
-#[lacking_permissions = "Hide"]
-#[lacking_role = "Nothing"]
-#[wrong_channel = "Strike"]
+#[lacking_permissions = "strike"]
+#[lacking_role = "strike"]
+#[wrong_channel = "strike"]
 fn my_help(
     context: &mut Context,
     msg: &Message,
