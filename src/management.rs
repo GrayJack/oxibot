@@ -98,6 +98,7 @@ const REACTION_WARNING: &str = "⚠";
 ///     fail: `🔴`
 ///     a role is invalid for the category: ⚠
 #[command]
+#[only_in(guild)]
 fn role(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
         msg.channel_id.send_message(&ctx.http, |m| {
