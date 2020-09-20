@@ -1,7 +1,5 @@
 use std::{collections::HashSet, env, error::Error, sync::Arc};
 
-use crate::{management::*, meme::*, owner::*, types::*, util::*};
-
 use serenity::{
     framework::standard::{
         help_commands,
@@ -12,11 +10,18 @@ use serenity::{
     prelude::*,
 };
 
+use once_cell::sync::Lazy;
+use time::Instant;
+
+use crate::{management::*, meme::*, owner::*, types::*, util::*};
+
 mod management;
 mod meme;
 mod owner;
 mod types;
 mod util;
+
+pub static UPTIME: Lazy<Instant> = Lazy::new(Instant::now);
 
 #[group]
 #[commands(latency, uname, uptime)]
@@ -75,6 +80,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
     }
 
+    // Make sure we already started the UPTIME
+    let _ = *UPTIME;
     if let Err(why) = client.start() {
         eprintln!("Client error: {:?}", why);
     }

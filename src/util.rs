@@ -9,6 +9,7 @@ use serenity::{
     prelude::*,
     utils::Colour as Color,
 };
+use time::Time;
 
 /// Calculates the shard latency.
 #[command]
@@ -63,18 +64,22 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-/// Shows how long the system running the bot has been online!
+/// Shows how long the bot has been online!
 #[command]
 fn uptime(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let uptime = Command::new("uptime").output();
-    let mut str = String::new();
-    match uptime {
-        Ok(out) => str.push_str(&out.stdout.iter().map(|&c| c as char).collect::<String>()),
-        Err(why) => println!("Error calling uptime: {:?}", why),
-    };
+    let time = crate::UPTIME.elapsed().whole_seconds();
+    let up_days = time / 86400;
+    let up_hours = (time - (up_days * 86400)) / 3600;
+    let up_min = (time - (up_days * 86400) - (up_hours * 3600)) / 60;
+    let up_sec = time - ((up_days * 86400) + (up_hours * 3600) + (up_min * 60));
 
     msg.channel_id.send_message(&ctx.http, |m| {
-        m.embed(|e| e.title(" ").color(Color::RED).description(&str))
+        m.embed(|e| {
+            e.title("UPTIME").color(Color::RED).description(format!(
+                "Up for {} days {} hours {} minutes {} seconds",
+                up_days, up_hours, up_min, up_sec,
+            ))
+        })
     })?;
 
     Ok(())
