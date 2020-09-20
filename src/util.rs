@@ -9,7 +9,6 @@ use serenity::{
     prelude::*,
     utils::Colour as Color,
 };
-use time::Time;
 
 /// Calculates the shard latency.
 #[command]
@@ -67,7 +66,8 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
 /// Shows how long the bot has been online!
 #[command]
 fn uptime(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let time = crate::UPTIME.elapsed().whole_seconds();
+    // SAFETY: safe because we are just borrowing from a `static mut`
+    let time = unsafe { crate::UPTIME.elapsed().whole_seconds() };
     let up_days = time / 86400;
     let up_hours = (time - (up_days * 86400)) / 3600;
     let up_min = (time - (up_days * 86400) - (up_hours * 3600)) / 60;

@@ -2,11 +2,18 @@ use std::sync::Arc;
 
 use serenity::{client::bridge::gateway::ShardManager, model::gateway::Ready, prelude::*};
 
+use time::Instant;
+
 /// OxiBot event handler
 pub struct OxiHandler;
 
 impl EventHandler for OxiHandler {
+    #[inline]
     fn ready(&self, _ctx: Context, ready: Ready) {
+        // Reset every time it reconnects
+        // SAFETY: safe because it's the only other place where we mutate the `static mut`
+        unsafe { *crate::UPTIME = Instant::now() };
+
         println!("{} is connected!", ready.user.name)
     }
 }
