@@ -108,10 +108,10 @@ async fn role(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .send_message(&ctx.http, |m| {
                 m.embed(|e| {
                     e.title(" ").color(Color::RED).description(
-                    "Wrong usage of command.\n\nUsage: `role <add | adicionar> <CATEGORY> <ROLES \
-                     ...>` or `role <rm | remove | remover> <CATEGORY> <ROLES ...>` or `role \
-                     <list | lista> [CATEGORY]`\n\nFor more information do `help role`",
-                )
+                        "Wrong usage of command.\n\nUsage: `role <add | adicionar> <CATEGORY> \
+                         <ROLES ...>` or `role <rm | remove | remover> <CATEGORY> <ROLES ...>` or \
+                         `role <list | lista> [CATEGORY]`\n\nFor more information do `help role`",
+                    )
                 })
             })
             .await?;
@@ -139,7 +139,7 @@ async fn add(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 m.embed(|e| {
                     e.title(" ").color(Color::RED).description(
                         "Usage: `role add <CATEGORY> <ROLES ...>` or `role adicionar <CATEGORY> \
-                     <ROLES ...>`",
+                         <ROLES ...>`",
                     )
                 })
             })
@@ -186,7 +186,7 @@ async fn add(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 eprintln!("Failed to get guild channel");
                 msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
-            }
+            },
         };
         let mut member = match cache.member(channel.guild_id, msg.author.id).await {
             Some(m) => m,
@@ -194,7 +194,7 @@ async fn add(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 eprintln!("Failed to get cache member");
                 msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
-            }
+            },
         };
 
         match member.add_roles(&ctx.http, &roles).await {
@@ -204,14 +204,14 @@ async fn add(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     msg.author.name, roles_str
                 );
                 msg.react(&ctx.http, REACTION_OK).await?;
-            }
+            },
             Err(why) => {
                 eprintln!(
                     "Failed to add {} to roles {}: {}",
                     msg.author.name, roles_str, why
                 );
                 msg.react(&ctx.http, REACTION_FAIL).await?;
-            }
+            },
         };
     }
 
@@ -237,9 +237,9 @@ async fn rm(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             .send_message(&ctx.http, |m| {
                 m.embed(|e| {
                     e.title(" ").color(Color::RED).description(
-                    "Usage: `role rm <CATEGORY> <ROLES ...>` or `role remove <CATEGORY> <ROLES \
-                     ...>` or `role remover <CATEGORY> <ROLES ...>`",
-                )
+                        "Usage: `role rm <CATEGORY> <ROLES ...>` or `role remove <CATEGORY> \
+                         <ROLES ...>` or `role remover <CATEGORY> <ROLES ...>`",
+                    )
                 })
             })
             .await?;
@@ -285,7 +285,7 @@ async fn rm(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 eprintln!("Failed to get guild channel");
                 msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
-            }
+            },
         };
         let mut member = match cache.member(channel.guild_id, msg.author.id).await {
             Some(m) => m,
@@ -293,7 +293,7 @@ async fn rm(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 eprintln!("Failed to get cache member");
                 msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
-            }
+            },
         };
 
         match member.remove_roles(&ctx.http, &roles).await {
@@ -303,14 +303,14 @@ async fn rm(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     msg.author.name, roles_str
                 );
                 msg.react(&ctx.http, REACTION_OK).await?;
-            }
+            },
             Err(why) => {
                 eprintln!(
                     "Failed to remove {} to roles {}: {}",
                     msg.author.name, roles_str, why
                 );
                 msg.react(&ctx.http, REACTION_FAIL).await?;
-            }
+            },
         };
     }
 

@@ -64,7 +64,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Ok(bot_id) => (owners, bot_id.id),
                 Err(why) => panic!("Could not access the bot id: {:?}", why),
             }
-        }
+        },
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
@@ -108,12 +108,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 #[lacking_role = "strike"]
 #[wrong_channel = "strike"]
 async fn my_help(
-    context: &Context,
-    msg: &Message,
-    args: Args,
-    help_options: &'static HelpOptions,
-    groups: &[&'static CommandGroup],
-    owners: HashSet<UserId>,
+    context: &Context, msg: &Message, args: Args, help_options: &'static HelpOptions,
+    groups: &[&'static CommandGroup], owners: HashSet<UserId>,
 ) -> CommandResult {
     let _ = help_commands::with_embeds(context, msg, args, help_options, groups, owners).await;
     Ok(())

@@ -23,7 +23,7 @@ async fn latency(ctx: &Context, msg: &Message) -> CommandResult {
             let _ = msg.reply(&ctx, "There was a problem getting the shard manager");
 
             return Ok(());
-        }
+        },
     };
 
     let manager = shard_manager.lock().await;
@@ -46,7 +46,7 @@ async fn latency(ctx: &Context, msg: &Message) -> CommandResult {
                 .await?;
 
             return Ok(());
-        }
+        },
     };
 
     let latency = match runner.latency {
