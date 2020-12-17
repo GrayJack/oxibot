@@ -9,12 +9,14 @@ use serenity::{
 /// Respond Pong.
 #[command]
 #[usage = "pint [TEXT]"]
-fn ping(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn ping(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
-        msg.reply(ctx, "Pong!")?;
+        msg.reply(ctx, "Pong!").await?;
     } else {
         let person: String = args.single().unwrap();
-        msg.channel_id.say(&ctx.http, format!("Pong {}", person))?;
+        msg.channel_id
+            .say(&ctx.http, format!("Pong {}", person))
+            .await?;
     }
 
     Ok(())
@@ -25,7 +27,7 @@ fn ping(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 /// If the `CATEGORY` is passed, it filter a fortune for that category.
 #[command]
 #[usage = "fortune [CATEGORY]"]
-fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn fortune(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let fortune = if args.is_empty() {
         Command::new("fortune").arg("-s").output()
     } else {
@@ -34,7 +36,7 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             Err(why) => {
                 println!("Failed to get arg: {:?}", why);
                 "".to_string()
-            },
+            }
         };
         Command::new("fortune")
             .args(vec!["-s", "-c", &arg])
@@ -46,7 +48,7 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         Err(why) => {
             println!("Error calling uname: {:?}", why);
             str.push_str("Failed to get a fortune")
-        },
+        }
     };
 
     if str == "```\n" {
@@ -56,7 +58,7 @@ fn fortune(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         str.push_str("\n```");
     }
 
-    msg.channel_id.say(&ctx.http, str)?;
+    msg.channel_id.say(&ctx.http, str).await?;
 
     Ok(())
 }

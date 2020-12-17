@@ -81,9 +81,9 @@ const VALID_PROGRAMMING: &[&str] = &[
     "Zig",
 ];
 
-const REACTION_OK: &str = "🟢";
-const REACTION_FAIL: &str = "🔴";
-const REACTION_WARNING: &str = "⚠";
+const REACTION_OK: char = '🟢';
+const REACTION_FAIL: char = '🔴';
+const REACTION_WARNING: char = '⚠';
 
 // TODO:
 /// Manage roles for the caller.
@@ -102,17 +102,19 @@ const REACTION_WARNING: &str = "⚠";
 #[sub_commands(add, rm, list)]
 #[usage = "role <add | adicionar> <CATEGORY> <ROLES ...>` or `role <rm | remove | remover> \
            <CATEGORY> <ROLES ...>` or `role <list | lista> [CATEGORY]"]
-fn role(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+async fn role(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if args.is_empty() {
-        msg.channel_id.send_message(&ctx.http, |m| {
-            m.embed(|e| {
-                e.title(" ").color(Color::RED).description(
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title(" ").color(Color::RED).description(
                     "Wrong usage of command.\n\nUsage: `role <add | adicionar> <CATEGORY> <ROLES \
                      ...>` or `role <rm | remove | remover> <CATEGORY> <ROLES ...>` or `role \
                      <list | lista> [CATEGORY]`\n\nFor more information do `help role`",
                 )
+                })
             })
-        })?;
+            .await?;
     }
 
     Ok(())
@@ -130,22 +132,24 @@ fn role(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
 #[only_in(guild)]
 #[aliases(adicionar)]
 #[usage = "role add <CATEGORY> <ROLES ...>` or `role adicionar <CATEGORY> <ROLES ...>"]
-fn add(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn add(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
-        msg.channel_id.send_message(&ctx.http, |m| {
-            m.embed(|e| {
-                e.title(" ").color(Color::RED).description(
-                    "Usage: `role add <CATEGORY> <ROLES ...>` or `role adicionar <CATEGORY> \
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title(" ").color(Color::RED).description(
+                        "Usage: `role add <CATEGORY> <ROLES ...>` or `role adicionar <CATEGORY> \
                      <ROLES ...>`",
-                )
+                    )
+                })
             })
-        })?;
+            .await?;
     }
 
     let category = args.single::<String>().unwrap_or_default();
     let category_list = category_valid_roles(&category);
 
-    let cache = &ctx.cache.read();
+    let cache = &ctx.cache;
     let (roles, roles_str) = {
         let mut roles_str = String::new();
         let mut roles = Vec::new();
@@ -154,17 +158,18 @@ fn add(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             if is_valid_role(&arg, category_list) {
                 roles_str.push_str(&arg);
                 roles_str.push(' ');
-                for (_, locked) in cache.guilds.iter() {
-                    let guild = locked.read();
-                    for (&id, role) in guild.roles.iter() {
-                        if arg == role.name {
-                            roles.push(id);
+                for guild_id in cache.guilds().await.iter() {
+                    if let Some(guild) = cache.guild(guild_id).await {
+                        for (&id, role) in guild.roles.iter() {
+                            if arg == role.name {
+                                roles.push(id);
+                            }
                         }
                     }
                 }
             } else {
                 eprintln!("Invalid role for {}: {}", category, &arg);
-                msg.react(&ctx.http, REACTION_WARNING)?;
+                msg.react(&ctx.http, REACTION_WARNING).await?;
             }
         }
 
@@ -173,40 +178,40 @@ fn add(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if roles.is_empty() || roles_str.is_empty() {
         eprintln!("Roles {}not found", roles_str);
-        msg.react(&ctx.http, REACTION_FAIL)?;
+        msg.react(&ctx.http, REACTION_FAIL).await?;
     } else {
-        let channel = match cache.guild_channel(msg.channel_id) {
+        let channel = match cache.guild_channel(msg.channel_id).await {
             Some(c) => c,
             _ => {
                 eprintln!("Failed to get guild channel");
-                msg.react(&ctx.http, REACTION_FAIL)?;
+                msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
-            },
+            }
         };
-        let mut member = match cache.member(channel.read().guild_id, msg.author.id) {
+        let mut member = match cache.member(channel.guild_id, msg.author.id).await {
             Some(m) => m,
             _ => {
                 eprintln!("Failed to get cache member");
-                msg.react(&ctx.http, REACTION_FAIL)?;
+                msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
-            },
+            }
         };
 
-        match member.add_roles(&ctx.http, &roles) {
+        match member.add_roles(&ctx.http, &roles).await {
             Ok(_) => {
                 println!(
                     "Successfully added {} to roles {}",
                     msg.author.name, roles_str
                 );
-                msg.react(&ctx.http, REACTION_OK)?;
-            },
+                msg.react(&ctx.http, REACTION_OK).await?;
+            }
             Err(why) => {
                 eprintln!(
                     "Failed to add {} to roles {}: {}",
                     msg.author.name, roles_str, why
                 );
-                msg.react(&ctx.http, REACTION_FAIL)?;
-            },
+                msg.react(&ctx.http, REACTION_FAIL).await?;
+            }
         };
     }
 
@@ -226,22 +231,24 @@ fn add(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 #[aliases(remove, remover)]
 #[usage = "role rm <CATEGORY> <ROLES ...>` or `role remove <CATEGORY> <ROLES>` or `role remover \
            <CATEGORY> <ROLES ...>"]
-fn rm(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn rm(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
-        msg.channel_id.send_message(&ctx.http, |m| {
-            m.embed(|e| {
-                e.title(" ").color(Color::RED).description(
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title(" ").color(Color::RED).description(
                     "Usage: `role rm <CATEGORY> <ROLES ...>` or `role remove <CATEGORY> <ROLES \
                      ...>` or `role remover <CATEGORY> <ROLES ...>`",
                 )
+                })
             })
-        })?;
+            .await?;
     }
 
     let category = args.single::<String>().unwrap_or_default();
     let category_list = category_valid_roles(&category);
 
-    let cache = &ctx.cache.read();
+    let cache = &ctx.cache;
     let (roles, roles_str) = {
         let mut roles_str = String::new();
         let mut roles = Vec::new();
@@ -250,17 +257,18 @@ fn rm(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             if is_valid_role(&arg, category_list) {
                 roles_str.push_str(&arg);
                 roles_str.push(' ');
-                for (_, locked) in cache.guilds.iter() {
-                    let guild = locked.read();
-                    for (&id, role) in guild.roles.iter() {
-                        if arg == role.name {
-                            roles.push(id);
+                for guild_id in cache.guilds().await.iter() {
+                    if let Some(guild) = cache.guild(guild_id).await {
+                        for (&id, role) in guild.roles.iter() {
+                            if arg == role.name {
+                                roles.push(id);
+                            }
                         }
                     }
                 }
             } else {
                 eprintln!("Invalid role for {}: {}", category, &arg);
-                msg.react(&ctx.http, REACTION_WARNING)?;
+                msg.react(&ctx.http, REACTION_WARNING).await?;
             }
         }
 
@@ -269,40 +277,40 @@ fn rm(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if roles.is_empty() || roles_str.is_empty() {
         eprintln!("Roles {}not found", roles_str);
-        msg.react(&ctx.http, REACTION_FAIL)?;
+        msg.react(&ctx.http, REACTION_FAIL).await?;
     } else {
-        let channel = match cache.guild_channel(msg.channel_id) {
+        let channel = match cache.guild_channel(msg.channel_id).await {
             Some(c) => c,
             _ => {
                 eprintln!("Failed to get guild channel");
-                msg.react(&ctx.http, REACTION_FAIL)?;
+                msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
-            },
+            }
         };
-        let mut member = match cache.member(channel.read().guild_id, msg.author.id) {
+        let mut member = match cache.member(channel.guild_id, msg.author.id).await {
             Some(m) => m,
             _ => {
                 eprintln!("Failed to get cache member");
-                msg.react(&ctx.http, REACTION_FAIL)?;
+                msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
-            },
+            }
         };
 
-        match member.remove_roles(&ctx.http, &roles) {
+        match member.remove_roles(&ctx.http, &roles).await {
             Ok(_) => {
                 println!(
                     "Successfully removed {} to roles {}",
                     msg.author.name, roles_str
                 );
-                msg.react(&ctx.http, REACTION_OK)?;
-            },
+                msg.react(&ctx.http, REACTION_OK).await?;
+            }
             Err(why) => {
                 eprintln!(
                     "Failed to remove {} to roles {}: {}",
                     msg.author.name, roles_str, why
                 );
-                msg.react(&ctx.http, REACTION_FAIL)?;
-            },
+                msg.react(&ctx.http, REACTION_FAIL).await?;
+            }
         };
     }
 
@@ -315,7 +323,7 @@ fn rm(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 #[only_in(guild)]
 #[aliases(listar)]
 #[usage = "role list [CATEGORY]` or `role listar [CATEGORY]"]
-fn list(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn list(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
         let categories = {
             let mut categories = [
@@ -328,13 +336,15 @@ fn list(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             format!("```\n{}\n```", categories.join("\n"))
         };
 
-        msg.channel_id.send_message(&ctx.http, |m| {
-            m.embed(|e| {
-                e.title("CATEGORIES")
-                    .color(Color::BLUE)
-                    .description(categories)
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title("CATEGORIES")
+                        .color(Color::BLUE)
+                        .description(categories)
+                })
             })
-        })?;
+            .await?;
     } else {
         let category = args.single::<String>().unwrap_or_default();
         let category_list = category_valid_roles(&category);
@@ -348,13 +358,15 @@ fn list(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             format!("```\n{}\n```", s.join("\n"))
         };
 
-        msg.channel_id.send_message(&ctx.http, |m| {
-            m.embed(|e| {
-                e.title(category.to_uppercase())
-                    .color(Color::BLUE)
-                    .description(s)
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title(category.to_uppercase())
+                        .color(Color::BLUE)
+                        .description(s)
+                })
             })
-        })?;
+            .await?;
     }
     Ok(())
 }

@@ -1,15 +1,18 @@
 use std::sync::Arc;
 
-use serenity::{client::bridge::gateway::ShardManager, model::gateway::Ready, prelude::*};
+use serenity::{
+    async_trait, client::bridge::gateway::ShardManager, model::gateway::Ready, prelude::*,
+};
 
 use time::Instant;
 
 /// OxiBot event handler
 pub struct OxiHandler;
 
+#[async_trait]
 impl EventHandler for OxiHandler {
     #[inline]
-    fn ready(&self, _ctx: Context, ready: Ready) {
+    async fn ready(&self, _ctx: Context, ready: Ready) {
         // Reset every time it reconnects
         // SAFETY: safe because it's the only other place where we mutate the `static mut`
         unsafe { *crate::UPTIME = Instant::now() };
@@ -25,4 +28,11 @@ pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
+}
+
+// A command counter
+pub struct CommandCounter;
+
+impl TypeMapKey for CommandCounter {
+    type Value = std::collections::HashMap<String, u64>;
 }

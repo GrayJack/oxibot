@@ -13,18 +13,20 @@ use serenity::{
 #[command]
 #[owners_only]
 #[only_in(dm)]
-fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let data = ctx.data.read();
+async fn quit(ctx: &Context, msg: &Message) -> CommandResult {
+    let data = ctx.data.read().await;
 
     if let Some(manager) = data.get::<ShardManagerContainer>() {
-        manager.lock().shutdown_all();
+        manager.lock().await.shutdown_all().await;
     } else {
-        let _ = msg.reply(&ctx, "There was a problem getting the shard manager");
+        let _ = msg
+            .reply(&ctx, "There was a problem getting the shard manager")
+            .await?;
 
         return Ok(());
     }
 
-    let _ = msg.reply(&ctx, "Shutting down!");
+    let _ = msg.reply(&ctx, "Shutting down!").await?;
 
     Ok(())
 }
@@ -33,7 +35,7 @@ fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
 #[command]
 #[owners_only]
 #[only_in(dm)]
-fn ip(ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn ip(ctx: &Context, msg: &Message) -> CommandResult {
     let ip = Command::new("curl").arg("ifconfig.me").output();
     let mut str = String::new();
     match ip {
@@ -41,9 +43,11 @@ fn ip(ctx: &mut Context, msg: &Message) -> CommandResult {
         Err(why) => println!("Error calling ip: {:?}", why),
     };
 
-    msg.channel_id.send_message(&ctx.http, |m| {
-        m.embed(|e| e.title("").color(Color::RED).description(&str))
-    })?;
+    msg.channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|e| e.title("").color(Color::RED).description(&str))
+        })
+        .await?;
 
     Ok(())
 }
