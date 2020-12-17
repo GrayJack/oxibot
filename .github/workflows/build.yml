@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        rust: [1.37.0, stable, beta, nightly]
+        rust: [1.48.0, stable, beta, nightly]
     steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
@@ -24,7 +24,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest]
-        rust: [1.37.0, stable, beta, nightly]
+        rust: [1.48.0, stable, beta, nightly]
     steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
@@ -40,7 +40,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        rust: [1.37.0, stable, beta, nightly]
+        rust: [1.48.0, stable, beta, nightly]
     steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1

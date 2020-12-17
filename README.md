@@ -12,7 +12,7 @@ A bot in Rust
 
 ## Minimal Viable Rust Version
 
-Rust 1.37
+Rust 1.48
 
 ## Requirements
 
