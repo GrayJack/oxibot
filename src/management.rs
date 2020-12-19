@@ -177,7 +177,7 @@ async fn add(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
 
     if roles.is_empty() || roles_str.is_empty() {
-        eprintln!("Roles {}not found", roles_str);
+        eprintln!("Roles {} not found", roles_str);
         msg.react(&ctx.http, REACTION_FAIL).await?;
     } else {
         let channel = match cache.guild_channel(msg.channel_id).await {
@@ -188,10 +188,20 @@ async fn add(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 return Ok(());
             },
         };
-        let mut member = match cache.member(channel.guild_id, msg.author.id).await {
-            Some(m) => m,
+
+        let guild = match channel.guild(cache).await {
+            Some(g) => g,
             _ => {
-                eprintln!("Failed to get cache member");
+                eprintln!("Failed to get channel guild");
+                msg.react(&ctx.http, REACTION_FAIL).await?;
+                return Ok(());
+            },
+        };
+
+        let mut member = match guild.member(&ctx.http, msg.author.id).await {
+            Ok(m) => m,
+            _ => {
+                eprintln!("Failed to get member");
                 msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
             },
@@ -287,10 +297,20 @@ async fn rm(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 return Ok(());
             },
         };
-        let mut member = match cache.member(channel.guild_id, msg.author.id).await {
-            Some(m) => m,
+
+        let guild = match channel.guild(cache).await {
+            Some(g) => g,
             _ => {
-                eprintln!("Failed to get cache member");
+                eprintln!("Failed to get channel guild");
+                msg.react(&ctx.http, REACTION_FAIL).await?;
+                return Ok(());
+            },
+        };
+
+        let mut member = match guild.member(&ctx.http, msg.author.id).await {
+            Ok(m) => m,
+            _ => {
+                eprintln!("Failed to get member");
                 msg.react(&ctx.http, REACTION_FAIL).await?;
                 return Ok(());
             },
